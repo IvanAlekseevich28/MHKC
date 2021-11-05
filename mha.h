@@ -26,8 +26,9 @@ struct PrivateKey
 
 PrivateKey keygen();
 std::string encrypt(std::string mes, const PublicKey& pubkey);
-std::string decrypt(std::string crypted, const PrivateKey& privkey);
+std::string decrypt(const std::string &crt, const PrivateKey& privkey);
 }
+
 
 std::ostream& operator<<(std::ostream& os, const MHA::PublicKey& k);
 std::istream& operator>>(std::istream& is, MHA::PublicKey& k);

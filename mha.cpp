@@ -2,6 +2,7 @@
 #include <random>
 #include <ctime>
 #include <numeric>
+#include <map>
 
 using namespace MHA;
 
@@ -76,6 +77,56 @@ bool isPrime(const EXNUM& x)
     return true;
 }
 
+std::string MHA::encrypt(std::string mes, const PublicKey &pubkey)
+{
+    constexpr unsigned blockLen = NUMBITLEN / 8;
+    while (mes.size() % blockLen)
+        mes.push_back(0);
+    const unsigned countBlocks = (mes.size() / blockLen) + (mes.size() % blockLen ? 1 : 0);
+
+    std::string crp;
+    NUM last = 0;
+    for (unsigned nBlk = 0; nBlk< countBlocks; nBlk++)
+    {
+        NUM S = 0;
+        for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
+        {
+            const unsigned strPos = nBlk * blockLen + nSubBlk;
+            const char& m = mes[strPos];
+            for (unsigned nBit = 0; nBit < 8 ; nBit++)
+                S += pubkey[nBit + (nSubBlk * 8)] * ((m >> nBit) % 2);
+        }
+        S ^= last;
+
+        for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
+            crp.push_back((S >> (nSubBlk * 8)) % 0x100);
+
+        last = S;
+    }
+
+    return crp;
+}
+
+
+//std::string MHA::decrypt(const std::string& crt, const PrivateKey &privkey)
+//{
+//    constexpr unsigned blockLen = NUMBITLEN / 8;
+//    const unsigned countBlocks = crt.size() / blockLen;
+//    std::map<NUM, unsigned> mapKey;
+//    for (unsigned i = 0; i < privkey.range.size(); i++)
+//        mapKey.insert(privkey.range[i], i);
+
+//    std::string crp;
+//    NUM last = 0;
+//    for (unsigned nBlk = 0; nBlk< countBlocks; nBlk++)
+//    {
+//        NUM S = 0;
+//        for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
+//        {
+//            const unsigned strPos = nBlk * blockLen + nSubBlk;
+//            const char& m = mes[strPos];
+//}
+
 using namespace std;
 
 ostream& operator<<(ostream& os, const PublicKey& k)
@@ -113,3 +164,4 @@ istream& operator>>(istream& is, PrivateKey& k)
 
     return is;
 }
+

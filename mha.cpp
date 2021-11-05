@@ -108,24 +108,37 @@ std::string MHA::encrypt(std::string mes, const PublicKey &pubkey)
 }
 
 
-//std::string MHA::decrypt(const std::string& crt, const PrivateKey &privkey)
-//{
-//    constexpr unsigned blockLen = NUMBITLEN / 8;
-//    const unsigned countBlocks = crt.size() / blockLen;
-//    std::map<NUM, unsigned> mapKey;
-//    for (unsigned i = 0; i < privkey.range.size(); i++)
-//        mapKey.insert(privkey.range[i], i);
+std::string MHA::decrypt(const std::string& crt, const PrivateKey &privkey)
+{
+    constexpr unsigned blockLen = NUMBITLEN / 8;
+    const unsigned countBlocks = crt.size() / blockLen;
+    std::map<NUM, unsigned> mapKey;
+    for (unsigned i = 0; i < privkey.range.size(); i++)
+        mapKey.insert(std::make_pair(privkey.range[i], i));
 
-//    std::string crp;
-//    NUM last = 0;
-//    for (unsigned nBlk = 0; nBlk< countBlocks; nBlk++)
-//    {
-//        NUM S = 0;
-//        for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
-//        {
-//            const unsigned strPos = nBlk * blockLen + nSubBlk;
-//            const char& m = mes[strPos];
-//}
+    std::string mes;
+    NUM last = 0;
+    for (unsigned nBlk = 0; nBlk< countBlocks; nBlk++)
+    {
+        NUM S = 0;
+        for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
+        {
+            const unsigned strPos = nBlk * blockLen + nSubBlk;
+            const char& m = crt[strPos];
+            S += (NUM)m << (nSubBlk * 8);
+        }
+        NUM decrypted = 0;
+        for (const auto& w : mapKey)
+            if (w.first <= S)
+            {
+                S -= w.first;
+                decrypted &= ~(1 << w.second);
+                if (S == 0)
+                    break;
+            }
+
+    }
+}
 
 using namespace std;
 

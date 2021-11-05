@@ -10,9 +10,10 @@ int main()
     auto k = keygen();
     string mes = "Hello, World!";
     string crp = encrypt(mes, k.pubkey);
-    int c0 = 0, c1 = 0;
     for (const auto& c : crp){
-        cout << bitset<8>(c) << endl;
+        cout << bitset<8>(c) << " ";
     }
+    string dcr = decrypt(crp, k);
+    cout << endl << dcr << endl;
     return 0;
 }

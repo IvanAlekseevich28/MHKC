@@ -5,62 +5,42 @@
 
 using namespace MHA;
 
-static PrivateRange genPrivateRange();
-static PrivateKey genPartPrivateKey(const PrivateRange& privRange);
-static void genPublicKey(PrivateKey& privKey);
-static EXNUM getPrimeMoreThan(const EXNUM& x);
-static bool isPrime(const EXNUM& x);
+static NUM getPrimeMoreThan(const NUM& x);
+static bool isPrime(const NUM& x);
+static NUM gen();
 
-MHA::PrivateKey MHA::keygen()
-{
-    auto privateKey = genPartPrivateKey(genPrivateRange());
-    genPublicKey(privateKey);
-    return privateKey;
-}
 
-PrivateRange genPrivateRange()
+PrivateKey MHA::genPrivateKey()
 {
     const auto dispersion = 2;
-    std::mt19937 gen;
-    gen.seed(time(0));
+    PrivateKey privateKey;
 
-    PrivateRange R;
-    EXNUM rangeSum = 0;
+    NUM rangeSum = 0;
     for (unsigned i = 0; i < NUMBITLEN; i++)
     {
-        R[i] = rangeSum + 1 + (gen() % dispersion);
-        rangeSum += R[i];
+        privateKey[i] = rangeSum + 1 + (gen() % dispersion);
+        rangeSum += privateKey[i];
     }
-
-    return R;
-}
-
-PrivateKey genPartPrivateKey(const PrivateRange& privRange)
-{
-    std::mt19937 gen;
-    gen.seed(time(0));
-    EXNUM rangeSum = std::accumulate(privRange.begin(), privRange.end(), 0);
-
-    PrivateKey privateKey;
-    privateKey.range = privRange;
-    privateKey.q = getPrimeMoreThan(rangeSum);
-    privateKey.r = gen() % privateKey.q;
 
     return privateKey;
 }
 
-static void genPublicKey(PrivateKey& privKey)
+PublicKey MHA::genPublicKey(PrivateKey& privateKey)
 {
+    PublicKey publicKey;
+    NUM rangeSum = std::accumulate(privateKey.begin(), privateKey.end(), 0);
+    NUM q = getPrimeMoreThan(rangeSum);
+    NUM r = gen() % q;
+
     for (unsigned i = 0; i < NUMBITLEN; i++)
-        privKey.pubkey[i] = (privKey.r * privKey.range[i]) % privKey.q;
+        publicKey[i] = (r * privateKey[i]) % q;
+
+    return publicKey;
 }
 
-EXNUM getPrimeMoreThan(const EXNUM& x)
+NUM getPrimeMoreThan(const NUM& x)
 {
-    std::mt19937 gen;
-    gen.seed(time(0));
-
-    EXNUM prime = x+1 + x%2;
+    NUM prime = x+1 + x%2;
     while (!isPrime(prime))
         prime += 2;
 
@@ -68,9 +48,9 @@ EXNUM getPrimeMoreThan(const EXNUM& x)
 
 }
 
-bool isPrime(const EXNUM& x)
+bool isPrime(const NUM& x)
 {
-    for (EXNUM i = 2; i<sqrt(x); i++)
+    for (NUM i = 2; i<sqrt(x); i++)
         if (x % i == 0)
             return false;
     return true;
@@ -107,11 +87,10 @@ std::string MHA::encrypt(std::string mes, const PublicKey &pubkey)
 }
 
 
-std::string MHA::decrypt(const std::string& crt, const PrivateKey &privkey)
+std::string MHA::decrypt(const std::string& crt, const PrivateKey& key)
 {
     constexpr unsigned blockLen = NUMBITLEN / 8;
     const unsigned countBlocks = crt.size() / blockLen;
-    const auto& key = privkey.range;
 
     std::string mes;
     NUM last = 0;
@@ -142,6 +121,13 @@ std::string MHA::decrypt(const std::string& crt, const PrivateKey &privkey)
     return mes;
 }
 
+static NUM gen()
+{
+    std::mt19937 generator;
+    generator.seed(time(0));
+
+    return generator();
+}
 
 using namespace std;
 
@@ -163,21 +149,3 @@ istream& operator>>(istream& is, PublicKey& k)
 
     return is;
 }
-
-ostream& operator<<(ostream& os, const PrivateKey& k)
-{
-    os << k.pubkey
-       << k.range
-       << k.q << " "
-       << k.r;
-
-    return os;
-}
-
-istream& operator>>(istream& is, PrivateKey& k)
-{
-    is >> k.pubkey >> k.range >> k.q >> k.r;
-
-    return is;
-}
-

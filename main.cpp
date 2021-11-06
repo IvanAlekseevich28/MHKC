@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <bitset>
 #include "mha.h"
 
@@ -9,7 +10,9 @@ int main()
 {
     auto priKey = genPrivateKey();
     auto pubkey = genPublicKey(priKey);
-    string mes = "Hello, World!";
+    cout << "Private key: " << priKey << "\nPublic key:  " << pubkey << "\n\n";
+
+    string mes = "Hello world!";
 
     for (const auto& c : mes){
         cout << bitset<8>(c) << " ";

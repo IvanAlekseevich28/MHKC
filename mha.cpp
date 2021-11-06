@@ -12,7 +12,7 @@ static NUM gen();
 
 PrivateKey MHA::genPrivateKey()
 {
-    const auto dispersion = 2;
+    const auto dispersion = 4;
     PrivateKey privateKey;
 
     NUM rangeSum = 0;
@@ -35,6 +35,7 @@ PublicKey MHA::genPublicKey(PrivateKey& privateKey)
     for (unsigned i = 0; i < NUMBITLEN; i++)
         publicKey[i] = (r * privateKey[i]) % q;
 
+    r = q = 0;
     return publicKey;
 }
 
@@ -45,7 +46,6 @@ NUM getPrimeMoreThan(const NUM& x)
         prime += 2;
 
     return prime;
-
 }
 
 bool isPrime(const NUM& x)
@@ -100,8 +100,8 @@ std::string MHA::decrypt(const std::string& crt, const PrivateKey& key)
         for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
         {
             const unsigned strPos = nBlk * blockLen + nSubBlk;
-            const char& m = crt[strPos];
-            S += ((NUM)m) << ((blockLen - nSubBlk - 1) * 8);
+            const NUM m = crt[strPos];
+            S += m << ((blockLen - nSubBlk - 1) * 8);
         }
         NUM decrypted = 0;
         for (int i = key.size() - 1; i >= 0; i --)

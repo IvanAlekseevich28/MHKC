@@ -2,7 +2,6 @@
 #include <random>
 #include <ctime>
 #include <numeric>
-#include <map>
 
 using namespace MHA;
 
@@ -99,7 +98,7 @@ std::string MHA::encrypt(std::string mes, const PublicKey &pubkey)
         S ^= last;
 
         for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
-            crp.push_back((S >> (nSubBlk * 8)) % 0x100);
+            crp.push_back((S >> ((blockLen - 1 -nSubBlk) * 8)) % 0x100);
 
         last = S;
     }
@@ -112,9 +111,7 @@ std::string MHA::decrypt(const std::string& crt, const PrivateKey &privkey)
 {
     constexpr unsigned blockLen = NUMBITLEN / 8;
     const unsigned countBlocks = crt.size() / blockLen;
-    std::map<NUM, unsigned> mapKey;
-    for (unsigned i = 0; i < privkey.range.size(); i++)
-        mapKey.insert(std::make_pair(privkey.range[i], i));
+    const auto& key = privkey.range;
 
     std::string mes;
     NUM last = 0;
@@ -125,20 +122,26 @@ std::string MHA::decrypt(const std::string& crt, const PrivateKey &privkey)
         {
             const unsigned strPos = nBlk * blockLen + nSubBlk;
             const char& m = crt[strPos];
-            S += (NUM)m << (nSubBlk * 8);
+            S += ((NUM)m) << ((blockLen - nSubBlk - 1) * 8);
         }
         NUM decrypted = 0;
-        for (const auto& w : mapKey)
-            if (w.first <= S)
+        for (int i = key.size() - 1; i >= 0; i --)
+            if (key[i] <= S)
             {
-                S -= w.first;
-                decrypted &= ~(1 << w.second);
+                S -= key[i];
+                decrypted += 1 << i;
                 if (S == 0)
                     break;
             }
+        decrypted ^= last;
+        for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
+            mes.push_back((decrypted >> (nSubBlk * 8)) % 0x100);
 
+        last = decrypted;
     }
+    return mes;
 }
+
 
 using namespace std;
 

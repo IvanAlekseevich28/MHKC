@@ -77,9 +77,13 @@ std::string MHA::encrypt(std::string mes, PublicKey pubkey)
             const unsigned strPos = nBlk * blockLen + nSubBlk;
             const char& m = mes[strPos];
             for (unsigned nBit = 0; nBit < 8 ; nBit++)
-                S += pubkey[7 - nBit + (nSubBlk * 8)] * ((m >>  (7 - nBit )) % 2);
+            {
+                const unsigned curIndexKeyNum = nBit + (nSubBlk * 8);
+                const bool curBit = ((m >> (7 - nBit)) % 2);
+                S += pubkey[curIndexKeyNum] * curBit;
+            }
         }
-        S ^= last;
+//        S ^= last;
 
         for (unsigned nSubBlk = 0; nSubBlk < exblockLen; nSubBlk++)
             crp.push_back((S >> ((exblockLen - 1 -nSubBlk) * 8)) % 0x100);
@@ -107,7 +111,7 @@ std::string MHA::decrypt(const std::string& crt, const PrivateKey& privateKey)
         for (unsigned nSubBlk = 0; nSubBlk < exblockLen; nSubBlk++)
         {
             const unsigned strPos = nBlk * exblockLen + nSubBlk;
-            const NUM m = crt[strPos];
+            const NUM m = (unsigned char)crt[strPos];
             S += m << ((exblockLen - nSubBlk - 1) * 8);
         }
         NUM decrypted = 0;
@@ -116,11 +120,11 @@ std::string MHA::decrypt(const std::string& crt, const PrivateKey& privateKey)
             if (key[i] <= S)
             {
                 S -= key[i];
-                decrypted += 1 << i;
+                decrypted += 1 << (NUMBITLEN - 1 - i);
                 if (S == 0)
                     break;
             }
-        decrypted ^= last;
+//        decrypted ^= last;
         for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
             mes.push_back((decrypted >> (nSubBlk * 8)) % 0x100);
 

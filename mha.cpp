@@ -83,7 +83,7 @@ std::string MHA::encrypt(std::string mes, PublicKey pubkey)
                 S += pubkey[curIndexKeyNum] * curBit;
             }
         }
-//        S ^= last;
+        S ^= last;
 
         for (unsigned nSubBlk = 0; nSubBlk < exblockLen; nSubBlk++)
             crp.push_back((S >> ((exblockLen - 1 -nSubBlk) * 8)) % 0x100);
@@ -114,7 +114,12 @@ std::string MHA::decrypt(const std::string& crt, const PrivateKey& privateKey)
             const NUM m = (unsigned char)crt[strPos];
             S += m << ((exblockLen - nSubBlk - 1) * 8);
         }
+
+        NUM origS = S;
+        S ^= last;
+        last = origS;
         NUM decrypted = 0;
+
         S = (S * invR) % privateKey.q;
         for (int i = key.size() - 1; i >= 0; i --)
             if (key[i] <= S)
@@ -124,11 +129,9 @@ std::string MHA::decrypt(const std::string& crt, const PrivateKey& privateKey)
                 if (S == 0)
                     break;
             }
-//        decrypted ^= last;
         for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
             mes.push_back((decrypted >> (nSubBlk * 8)) % 0x100);
 
-        last = decrypted;
     }
     return mes;
 }

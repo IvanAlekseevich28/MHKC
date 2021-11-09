@@ -12,7 +12,8 @@ int main()
     auto pubkey = genPublicKey(priKey);
     cout << "Private key: " << priKey << "\nPublic key:  " << pubkey << "\n\n";
 
-    string mes = "Hello world!";
+    string mes = "H";
+//    mes[0] = 0x18;
 
     for (const auto& c : mes){
         cout << bitset<8>(c) << " ";

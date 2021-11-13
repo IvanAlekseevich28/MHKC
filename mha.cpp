@@ -13,7 +13,7 @@ static NUM invertByMod(NUM a, NUM m);
 PrivateKey MHA::genPrivateKey()
 {
     std::mt19937 gen;
-    gen.seed(0);
+    gen.seed(time(0));
 
     const auto dispersion = 4;
     PrivateKey privateKey;

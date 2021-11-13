@@ -13,7 +13,8 @@ int main()
     cout << "Private key: " << priKey << "\nPublic key:  " << pubkey << "\n\n";
 
     string mes = "Hello!";
-//    mes[0] = 0x18;
+    mes[0] = 0x0b;
+    cout << mes << "\n";
 
     for (const auto& c : mes){
         cout << bitset<8>(c) << " ";

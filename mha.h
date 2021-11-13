@@ -7,9 +7,9 @@
 
 namespace MHA
 {
-using NUM = unsigned int;
+using NUM = unsigned long long;;
 using EXNUM = unsigned long long;
-constexpr unsigned NUMBITLEN = 8;
+constexpr unsigned NUMBITLEN = 24;
 
 using PublicKey = std::array<NUM, NUMBITLEN>;
 using PrivateRange = PublicKey;

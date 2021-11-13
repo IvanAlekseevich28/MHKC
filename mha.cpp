@@ -2,6 +2,7 @@
 #include <random>
 #include <ctime>
 #include <numeric>
+#include <iostream>
 
 using namespace MHA;
 
@@ -129,8 +130,9 @@ std::string MHA::decrypt(const std::string& crt, const PrivateKey& privateKey)
                 if (S == 0)
                     break;
             }
+        std::cout << S << "\n";
         for (unsigned nSubBlk = 0; nSubBlk < blockLen; nSubBlk++)
-            mes.push_back((decrypted >> (nSubBlk * 8)) % 0x100);
+            mes.push_back((decrypted >> ((blockLen - 1 -nSubBlk) * 8)) % 0x100);
 
     }
     return mes;
